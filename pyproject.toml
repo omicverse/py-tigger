@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pytigger"
+version = "0.1.0"
+description = "Pure-Python port of the R/CRAN package tigger — novel immunoglobulin V-allele discovery and subject-specific V genotype inference from AIRR-Seq / Rep-Seq data."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Zehua Zeng", email = "starlitnightly@163.com" },
+]
+keywords = [
+    "tigger", "immcantation", "AIRR-seq", "Rep-seq", "immunoglobulin",
+    "V-allele", "novel-allele", "genotype", "germline", "IGHV",
+    "B-cell-receptor", "repertoire-sequencing", "antibody",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+
+dependencies = [
+    "numpy>=1.23",
+    "scipy>=1.10",
+    "pandas>=1.5",
+    "matplotlib>=3.6",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "pytest-cov", "ruff"]
+
+[project.urls]
+Homepage = "https://github.com/omicverse/py-tigger"
+Repository = "https://github.com/omicverse/py-tigger"
+Issues = "https://github.com/omicverse/py-tigger/issues"
+"Upstream CRAN package" = "https://cran.r-project.org/package=tigger"
+"Upstream docs" = "https://tigger.readthedocs.io"
+"Upstream (omicverse)" = "https://github.com/Starlitnightly/omicverse"
+
+[tool.setuptools.packages.find]
+include = ["pytigger*"]
+exclude = ["tests*", "examples*", "tigger-ref*"]
+
+[tool.setuptools.package-data]
+pytigger = ["data/*.csv", "data/*.csv.gz", "data/*.fasta"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::FutureWarning",
+    "ignore::RuntimeWarning",
+]
