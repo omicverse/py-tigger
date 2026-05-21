@@ -13,6 +13,8 @@ both sides analyse the exact same input.  We compare:
 * ``genotype_fasta``          — same allele set and sequences as R.
 * ``reassign_alleles``        — the v_call_genotyped column matches R on
   100% of sequences.
+* ``subsample_db``            — with a fixed seed, the exact set of
+  subsampled rows (and the per-gene group counts) matches R.
 
 Tests skip gracefully when the CMAP R environment or tigger is unavailable.
 """
@@ -169,6 +171,37 @@ def test_parity_reassign_alleles(r_outputs, py_pipeline):
     assert len(py_calls) == len(r_calls)
     agree = (py_calls == r_calls).mean()
     assert agree == 1.0, f"reassignAlleles agreement {agree:.4%}"
+
+
+def test_parity_subsample_db(r_outputs, py_pipeline):
+    """subsampleDb selects the exact same rows as R for a fixed seed.
+
+    pytigger ships an R-compatible Mersenne-Twister, so with ``set.seed(1)``
+    on the R side and ``random_state=1`` on the Python side the subsampled
+    rows are bit-for-bit identical (including the per-gene group counts).
+    """
+    data = py_pipeline["data"].reset_index(drop=True)
+    ss = tg.subsample_db(data, random_state=1)
+
+    # 1-based original-row indices, to match R's `.orig_row` tag.
+    py_idx = sorted((data.index.get_indexer(ss.index) + 1).tolist())
+    r_idx = sorted(
+        pd.read_csv(r_outputs / "R_subsample_gene.csv")["orig_row"].tolist()
+    )
+    assert py_idx == r_idx, "subsample_db selected a different row set than R"
+
+    # Per-(algorithm-group) sampled counts also match R exactly.
+    r_counts = pd.read_csv(r_outputs / "R_subsample_counts.csv")
+    assert len(ss) == int(r_counts["total"].iloc[0])
+    py_pos = set((data.index.get_indexer(ss.index) + 1).tolist())
+    from pytigger.segments import get_gene
+
+    gf = get_gene(list(data["v_call"]), first=False)
+    for _, row in r_counts.iterrows():
+        g = row["gene"]
+        grp = {i + 1 for i in range(len(gf)) if g in str(gf[i])}
+        assert len(grp & py_pos) == int(row["count"]), \
+            f"per-group count for {g} differs from R"
 
 
 def test_parity_generate_evidence(r_outputs, py_pipeline):

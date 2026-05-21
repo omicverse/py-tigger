@@ -22,7 +22,7 @@ The TIgGER trifecta
 Supporting functions
 --------------------
 * :func:`select_novel`, :func:`genotype_fasta`, :func:`generate_evidence`,
-  :func:`get_popular_mutation_count`.
+  :func:`get_popular_mutation_count`, :func:`subsample_db`.
 * Sequence/IO: :func:`read_ig_fasta`, :func:`write_fasta`,
   :func:`clean_seqs`, :func:`update_allele_names`, :func:`sort_alleles`,
   :func:`get_mutated_positions`, :func:`get_mut_count`,
@@ -69,6 +69,7 @@ from .novel import (
 )
 from .plotting import plot_genotype, plot_novel
 from .segments import get_allele, get_family, get_gene, translate_dna
+from .subsample import subsample_db
 from .sequences import (
     clean_seqs,
     find_unmutated_calls,
@@ -82,7 +83,7 @@ from .sequences import (
     write_fasta,
 )
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 __all__ = [
     # The TIgGER trifecta + core
@@ -94,6 +95,7 @@ __all__ = [
     "genotype_fasta",
     "generate_evidence",
     "get_popular_mutation_count",
+    "subsample_db",
     # sequence / IO utilities
     "read_ig_fasta",
     "write_fasta",

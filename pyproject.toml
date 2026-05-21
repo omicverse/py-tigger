@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pytigger"
-version = "0.1.0"
+version = "0.1.1"
 description = "Pure-Python port of the R/CRAN package tigger — novel immunoglobulin V-allele discovery and subject-specific V genotype inference from AIRR-Seq / Rep-Seq data."
 readme = "README.md"
 requires-python = ">=3.9"

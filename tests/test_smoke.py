@@ -201,6 +201,35 @@ def test_generate_evidence(airrdb, genotype, germline, novel):
     assert rec["sequences"] == 864
 
 
+def test_subsample_db(airrdb):
+    # Gene mode: equal number of sequences per gene group, reproducible.
+    ss = tg.subsample_db(airrdb, random_state=1)
+    assert isinstance(ss, pd.DataFrame)
+    assert list(ss.columns) == list(airrdb.columns)
+    assert 0 < len(ss) <= len(airrdb)
+    # Reproducible for a fixed seed.
+    ss_again = tg.subsample_db(airrdb, random_state=1)
+    assert ss.index.tolist() == ss_again.index.tolist()
+    # Allele mode with an explicit cap.
+    ss_allele = tg.subsample_db(airrdb, mode="allele", max_n=10,
+                                random_state=1)
+    assert 0 < len(ss_allele) <= len(airrdb)
+    # Additional grouping variable is subsampled independently.
+    tagged = airrdb.copy()
+    tagged["sample_id"] = (["A", "B"] * (len(tagged) // 2 + 1))[:len(tagged)]
+    ss_grp = tg.subsample_db(tagged, group="sample_id", random_state=1)
+    assert list(ss_grp.columns) == list(tagged.columns)
+    assert 0 < len(ss_grp) <= len(tagged)
+    # A NumPy Generator is accepted too.
+    ss_np = tg.subsample_db(airrdb, random_state=np.random.default_rng(0))
+    assert 0 < len(ss_np) <= len(airrdb)
+    # Missing / invalid arguments raise informative errors.
+    with pytest.raises(ValueError):
+        tg.subsample_db(airrdb, gene="not_a_column")
+    with pytest.raises(ValueError):
+        tg.subsample_db(airrdb, mode="bogus")
+
+
 def test_evidence_helpers():
     assert tg.has_non_imgt_gaps("AC-GT") is True
     assert tg.has_non_imgt_gaps("ACGTAC") is False

@@ -48,4 +48,32 @@ ev <- generateEvidence(out, novel, geno, gtdb, SampleGermlineIGHV,
 write.csv(as.data.frame(ev), file.path(out_dir, "R_evidence.csv"),
           row.names = FALSE)
 
+# --- subsampleDb ------------------------------------------------------------
+# Default gene-mode subsampling with a fixed seed.  An explicit `.orig_row`
+# column is added so the exact set of selected rows can be recovered (R's
+# select() inside subsampleDb resets the data.frame rownames).  We write the
+# selected original-row indices and the per-(algorithm-group) sampled counts
+# so the Python test can compare RNG-independent invariants (total size and
+# per-group counts).
+AIRRDb_tagged <- AIRRDb
+AIRRDb_tagged[[".orig_row"]] <- seq_len(nrow(AIRRDb))
+
+set.seed(1)
+ss_gene <- subsampleDb(AIRRDb_tagged)
+ss_idx  <- sort(ss_gene[[".orig_row"]])
+write.csv(data.frame(orig_row = ss_idx),
+          file.path(out_dir, "R_subsample_gene.csv"), row.names = FALSE)
+
+# Per-(algorithm-group) sampled counts: for every gene, how many sampled
+# rows fall in that gene's substring-grep group (mirrors subsampleDb's own
+# allele_groups definition).
+gf      <- alakazam::getGene(AIRRDb$v_call, first = FALSE)
+genes   <- unique(unlist(strsplit(gf, ",")))
+groups  <- sapply(genes, grep, gf, fixed = TRUE, simplify = FALSE)
+n_gene  <- min(sapply(groups, length))
+per_grp <- sapply(groups, function(idx) length(intersect(idx, ss_idx)))
+write.csv(data.frame(gene = names(per_grp), count = as.integer(per_grp),
+                     n = n_gene, total = nrow(ss_gene)),
+          file.path(out_dir, "R_subsample_counts.csv"), row.names = FALSE)
+
 cat("R reference outputs written to", out_dir, "\n")
